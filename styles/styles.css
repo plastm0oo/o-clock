@@ -1,0 +1,103 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  min-inline-size: 375px;
+  max-inline-size: 1440px;
+  margin: 0 auto;
+  /*padding: 0;*/
+}
+
+.page {
+    background-color: #e0e3e9;
+}
+
+.header {
+    color: #454545;
+    text-align: center;
+}
+
+.schedule {
+    width: 532px;
+    height: 356px;
+    margin: 2rem auto;
+    padding: 1rem;
+    background: #fff;
+    border-radius: 30px;
+}
+
+h1 {
+    width: 244px;
+    height: 62px;
+    left: 212px;
+    top: 172px;
+    font-family: 'IBM Plex Sans';
+    font-weight: 600;
+    font-size: 48px;
+    line-height: 62px;
+    color: #000000;
+}
+
+.day-view h2 {
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+    color: #444;
+}
+
+.tasks {
+    list-style: none;
+    margin-bottom: 1rem;
+}
+
+.task {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background: #f9f9f9;
+    margin-bottom: 0.5rem;
+    border-left: 4px solid;
+}
+
+.task .category {
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.category.education {
+    border-color: #007bff;
+}
+
+.category.relationships {
+    border-color: #28a745;
+}
+
+.category.rest {
+    border-color: #ffc107;
+}
+
+.add-task-btn {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.add-task-btn:hover {
+    background: #0056b3;
+}
+
+.footer {
+    text-align: center;
+    padding: 1rem 0;
+    background: #333;
+    color: #fff;
+    margin-top: 2rem;
+}
