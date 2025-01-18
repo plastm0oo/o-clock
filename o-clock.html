@@ -28,6 +28,34 @@
         </div>
         <button id="next-day" class="side-button">&gt;</button>
     </main>
+
+    <!-- Модальное окно для добавления задачи -->
+    <div id="task-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="close-modal">&times;</span>
+            <h2>Добавить задачу</h2>
+            <form id="task-form">
+                <label for="category">Категория:</label>
+                <div id="category-options">
+                    <input type="radio" name="category" value="gray" id="category-gray"><label for="category-gray" class="category-circle gray"></label>
+                    <input type="radio" name="category" value="red" id="category-red"><label for="category-red" class="category-circle red"></label>
+                    <input type="radio" name="category" value="orange" id="category-orange"><label for="category-orange" class="category-circle orange"></label>
+                    <input type="radio" name="category" value="yellow" id="category-yellow"><label for="category-yellow" class="category-circle yellow"></label>
+                    <input type="radio" name="category" value="green" id="category-green"><label for="category-green" class="category-circle green"></label>
+                    <input type="radio" name="category" value="blue" id="category-blue"><label for="category-blue" class="category-circle blue"></label>
+                    <input type="radio" name="category" value="indigo" id="category-indigo"><label for="category-indigo" class="category-circle indigo"></label>
+                </div>
+
+                <label for="time">Время:</label>
+                <input type="text" id="time" name="time" placeholder="12:00 - 13:30">
+
+                <label for="description">Задача:</label>
+                <textarea id="description" name="description" rows="2" placeholder="Описание задачи"></textarea>
+
+                <button type="submit">Добавить</button>
+            </form>
+        </div>
+    </div>
     <script src="./scripts/add.js"></script>
 </body>
 </html>
