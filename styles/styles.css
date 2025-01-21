@@ -1,5 +1,4 @@
 body {
-    font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
     background-color: #E0E3E9;
@@ -19,8 +18,8 @@ header {
 }
 
 #week-view {
-    background-color: #fff;
-    border: 1px solid #333;
+    background-color: transparent;
+    border: none;
     border-radius: 5px;
     padding: 5px 10px;
     cursor: pointer;
@@ -48,6 +47,13 @@ main {
 #main-title {
     margin: 0;
     align-self: start;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 32px;
+    line-height: 42px;
+    text-align: center;
+    color: #454545;
 }
 
 #day-schedule {
@@ -68,6 +74,25 @@ main {
     justify-content: space-between;
     width: 100%;
     margin-bottom: 20px;
+}
+
+#current-date {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 48px;
+    line-height: 62px;
+    color: #000000;
+}
+
+#current-day {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 32px;
+    line-height: 42px;
+    text-align: right;
+    color: #454545;
 }
 
 #tasks {
@@ -108,10 +133,8 @@ main {
 }
 
 .side-button {
-    background-color: #fff;
-    border: 1px solid #333;
-    border-radius: 5px;
-    padding: 10px;
+    background-color: transparent;
+    border: none;
     cursor: pointer;
     position: fixed;
     top: 50%;
@@ -127,11 +150,8 @@ main {
 }
 
 #add-task {
-    background-color: #4CAF50;
-    color: white;
+    background-color: transparent;
     border: none;
-    border-radius: 5px;
-    padding: 10px 20px;
     cursor: pointer;
     margin-top: 20px;
 }
@@ -153,6 +173,7 @@ main {
 }
 
 .modal-content {
+
     background-color: #fff;
     margin: auto;
     padding: 20px;
@@ -222,10 +243,8 @@ form textarea {
 }
 
 form button {
-    background-color: #4CAF50;
-    color: white;
+    background-color: transparent;
     border: none;
-    border-radius: 5px;
-    padding: 10px 20px;
     cursor: pointer;
+    align-self: center;
 }
