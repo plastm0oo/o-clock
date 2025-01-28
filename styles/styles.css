@@ -20,8 +20,6 @@ header {
 #week-view {
     background-color: transparent;
     border: none;
-    border-radius: 5px;
-    padding: 5px 10px;
     cursor: pointer;
 }
 
@@ -32,7 +30,6 @@ main {
     align-items: center;
     width: 100%;
     position: relative;
-
 }
 
 #schedule-container {
@@ -44,6 +41,20 @@ main {
     flex-direction: column;
     align-items: center;
 }
+
+#day-schedule {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 30px;
+    /*box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);*/
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
 #main-title {
     margin: 0;
     align-self: start;
@@ -56,24 +67,13 @@ main {
     color: #454545;
 }
 
-#day-schedule {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    max-height: 70vh;
-    overflow-y: auto;
-}
-
 #date {
     display: flex;
     justify-content: space-between;
     width: 100%;
     margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 3px solid #00000050;
 }
 
 #current-date {
@@ -103,8 +103,13 @@ main {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-bottom: 1px solid #ccc;
     padding: 10px 0;
+    font-family: 'IBM Plex Sans';
+    font-style: normal;
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 21px;
+    color: #454545;
 }
 
 .task .category {
@@ -112,19 +117,58 @@ main {
     height: 10px;
     border-radius: 50%;
     margin-right: 10px;
+    cursor: pointer;
 }
 
-.task .time {
+/*
+.task .time,
+.task .description {
     flex: 1;
-    text-align: center;
+    margin-right: 10px;
+} 
+
+.task .time input,
+.task .description input {
+    width: 100%;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+} */
+
+.task .time {
+    width: 30%;
+    margin-right: 20px;
 }
 
 .task .description {
-    flex: 2;
+    width: 50%;
+    margin-right: 20px;
+}
+
+.button-container {
+    display: flex;
+    gap: 4px;
+}
+
+.task .time input,
+.task .description input {
+    width: 100%;
+    padding: 5px;
+    margin-left: -7px;
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    font-family: 'IBM Plex Sans';
+    font-style: normal;
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 21px;
+    color: #00000085;
 }
 
 .task button {
-    background-color: #ff4d4d;
+    /*width: 18px;
+    height: 18px;*/
+    background-color: #E0E3E9;
     border: none;
     border-radius: 5px;
     padding: 5px 10px;
@@ -132,13 +176,48 @@ main {
     color: #fff;
 }
 
+button.cancel {
+    background-color: #E55050;
+}
+
+button.accept {
+    background-color: #6CAF64;
+}
+
+.color-picker {
+    display: none;
+    position: absolute;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.color-picker .color {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin: 5px;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.gray { background-color: #BABDCE; }
+.red { background-color: #E55050; }
+.orange { background-color: #F7B33F; }
+.yellow { background-color: #FFDD00; }
+.green { background-color: #6CAF64; }
+.blue { background-color: #5090E5; }
+.indigo { background-color: #B98CE3; }
+
 .side-button {
     background-color: transparent;
     border: none;
     cursor: pointer;
     position: fixed;
-    top: 50%;
     transform: translateY(-50%);
+    z-index: 1;
 }
 
 #prev-day {
@@ -156,9 +235,9 @@ main {
     margin-top: 20px;
 }
 
-/* Стили для модального окна */
+/* Стили для модального окна 
 .modal {
-    display: none; /* Скрываем модальное окно по умолчанию */
+    display: none; 
     position: fixed;
     z-index: 1000;
     left: 0;
@@ -248,3 +327,4 @@ form button {
     cursor: pointer;
     align-self: center;
 }
+*/

@@ -26,7 +26,7 @@
             <h1 id="main-title">2025</h1>
             <section id="day-schedule">
                 <div id="date">
-                    <span id="current-date">16 Января</span>
+                    <span id="current-date">15 Января</span>
                     <span id="current-day">Среда</span>
                 </div>
                 <div id="tasks">
@@ -53,46 +53,6 @@
             </svg>
         </button>
     </main>
-
-    <!-- Модальное окно для добавления задачи -->
-    <div id="task-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-button" id="close-modal">&times;</span>
-            <h2>Добавить задачу</h2>
-            <form id="task-form">
-                <label for="category">Категория:</label>
-                <div id="category-options">
-                    <input type="radio" name="category" value="gray" id="category-gray"><label for="category-gray" class="category-circle gray"></label>
-                    <input type="radio" name="category" value="red" id="category-red"><label for="category-red" class="category-circle red"></label>
-                    <input type="radio" name="category" value="orange" id="category-orange"><label for="category-orange" class="category-circle orange"></label>
-                    <input type="radio" name="category" value="yellow" id="category-yellow"><label for="category-yellow" class="category-circle yellow"></label>
-                    <input type="radio" name="category" value="green" id="category-green"><label for="category-green" class="category-circle green"></label>
-                    <input type="radio" name="category" value="blue" id="category-blue"><label for="category-blue" class="category-circle blue"></label>
-                    <input type="radio" name="category" value="indigo" id="category-indigo"><label for="category-indigo" class="category-circle indigo"></label>
-                </div>
-
-                <label for="time">Время:</label>
-                <input type="text" id="time" name="time" placeholder="12:00 - 13:30">
-
-                <label for="description">Задача:</label>
-                <textarea id="description" name="description" rows="2" placeholder="Описание задачи"></textarea>
-
-                <button type="submit">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none">
-                        <g clip-path="url(#a)">
-                          <path fill="#E0E3E9" d="M22 0H10C4.477 0 0 4.477 0 10v12c0 5.523 4.477 10 10 10h12c5.523 0 10-4.477 10-10V10c0-5.523-4.477-10-10-10Z"/>
-                          <path fill="#6C6C6C" fill-rule="evenodd" d="M17.5 6a1.5 1.5 0 0 0-3 0v8.5H6a1.5 1.5 0 0 0 0 3h8.5V26a1.5 1.5 0 0 0 3 0v-8.5H26a1.5 1.5 0 0 0 0-3h-8.5V6Z" clip-rule="evenodd"/>
-                        </g>
-                        <defs>
-                          <clipPath id="a">
-                            <path fill="#fff" d="M0 0h32v32H0z"/>
-                          </clipPath>
-                        </defs>
-                      </svg>                      
-                </button>
-            </form>
-        </div>
-    </div>
     <script src="./scripts/add.js"></script>
 </body>
 </html>
