@@ -1,23 +1,29 @@
 document.addEventListener('DOMContentLoaded', () => {
     const addTaskButton = document.getElementById('add-task');
     const tasksContainer = document.getElementById('tasks');
+    let taskIdCounter = 0; //счетчик для уникальных идентификаторов задач
 
-    // Открытие новой строки задачи
+    //открытие новой строки задачи
     addTaskButton.addEventListener('click', () => {
         addNewTask();
     });
 
     function addNewTask() {
-        // Создание элемента строки задачи
+        //создание элемента строки задачи
         const taskElement = document.createElement('div');
         taskElement.classList.add('task');
+        taskElement.dataset.taskId = `task-${taskIdCounter}`; //уникальный идентификатор для задачи
+        taskIdCounter++;
 
         const categoryElement = document.createElement('div');
         categoryElement.classList.add('category');
         categoryElement.classList.add('gray');
-        categoryElement.addEventListener('click', () => {
-            showColorPicker(categoryElement, taskElement, true);
-        });
+        categoryElement.dataset.taskId = taskElement.dataset.taskId; //привязка к задаче
+        categoryElement.addEventListener('click', (event) => {
+            if (isEditing(taskElement)) {
+                showColorPicker(event.currentTarget);
+            }
+        }); 
 
         const timeElement = document.createElement('div');
         timeElement.classList.add('time');
@@ -36,35 +42,43 @@ document.addEventListener('DOMContentLoaded', () => {
         descriptionInput.setAttribute('placeholder', 'Описание задачи');
         descriptionElement.appendChild(descriptionInput);
 
-        // Создание контейнера для кнопок
+        //создание контейнера для кнопок
         const buttonContainer = document.createElement('div');
         buttonContainer.classList.add('button-container');
 
         const confirmButton = document.createElement('button');
-        confirmButton.textContent = 'v';
+        confirmButton.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="14" fill="none">
+                <path stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="m2.111 7.317 3.943 4.929 9.2-9.857"/>
+            </svg>
+        `;
         confirmButton.classList.add('accept');
         confirmButton.addEventListener('click', () => {
             saveTask(categoryElement, timeInput.value, descriptionInput.value, taskElement);
         });
 
         const cancelButton = document.createElement('button');
-        cancelButton.textContent = 'x';
+        cancelButton.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="none">
+                <path stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="m2 15 6.5-6.5M15 2 8.5 8.5m0 0L15 15M8.5 8.5 2 2"/>
+            </svg>
+        `;
         cancelButton.classList.add('cancel');
         cancelButton.addEventListener('click', () => {
             tasksContainer.removeChild(taskElement);
         });
 
-        // Добавление кнопок в контейнер
+        //добавление кнопок в контейнер
         buttonContainer.appendChild(confirmButton);
         buttonContainer.appendChild(cancelButton);
 
-        // Добавление элементов в строку задачи
+        //добавление элементов в строку задачи
         taskElement.appendChild(categoryElement);
         taskElement.appendChild(timeElement);
         taskElement.appendChild(descriptionElement);
         taskElement.appendChild(buttonContainer);
 
-        // Добавление строки задачи в контейнер задач
+        //добавление строки задачи в контейнер задач
         tasksContainer.appendChild(taskElement);
     }
 
@@ -82,7 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
         descriptionElement.classList.add('description');
         descriptionElement.textContent = description;
 
-        // Создание контейнера для кнопок
+        //создание контейнера для кнопок
         const buttonContainer = document.createElement('div');
         buttonContainer.classList.add('button-container');
 
@@ -113,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tasksContainer.removeChild(taskElement);
         });
 
-        // Добавление кнопок в контейнер
+        //добавление кнопок в контейнер
         buttonContainer.appendChild(editButton);
         buttonContainer.appendChild(deleteButton);
 
@@ -126,12 +140,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function editTask(taskElement, categoryElement, time, description, originalTask) {
         taskElement.innerHTML = '';
-
+        
         const categoryContainer = document.createElement('div');
         categoryContainer.classList.add('category');
         categoryContainer.classList.add(categoryElement.classList[1]);
-        categoryContainer.addEventListener('click', () => {
-            showColorPicker(categoryContainer, taskElement, true);
+        categoryContainer.dataset.taskId = taskElement.dataset.taskId; //привязка к задаче
+        categoryContainer.addEventListener('click', (event) => {
+            if (isEditing(taskElement)) {
+                showColorPicker(event.currentTarget);
+            }
         });
 
         const timeElement = document.createElement('div');
@@ -151,22 +168,30 @@ document.addEventListener('DOMContentLoaded', () => {
         descriptionInput.setAttribute('value', description);
         descriptionElement.appendChild(descriptionInput);
 
-        // Создание контейнера для кнопок
+        //создание контейнера для кнопок
         const buttonContainer = document.createElement('div');
         buttonContainer.classList.add('button-container');
 
         const confirmButton = document.createElement('button');
-        confirmButton.textContent = 'v';
+        confirmButton.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="10" fill="none">
+                <path stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 5 3 4 7-8"/>
+            </svg>
+        `;
         confirmButton.classList.add('accept');
         confirmButton.addEventListener('click', () => {
-            saveTask(categoryElement, timeInput.value, descriptionInput.value, taskElement);
+            saveTask(categoryContainer, timeInput.value, descriptionInput.value, taskElement);
         });
 
         const cancelButton = document.createElement('button');
-        cancelButton.textContent = 'x';
+        cancelButton.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="14" fill="none">
+                <path stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="m2.111 7.317 3.943 4.929 9.2-9.857"/>
+            </svg>
+        `;
         cancelButton.classList.add('cancel');
         cancelButton.addEventListener('click', () => {
-            //Возвращение задачи в изначальное состояние
+            //возвращение задачи в изначальное состояние
             taskElement.innerHTML = '';
             taskElement.appendChild(createCategoryElement(originalTask.category));
             taskElement.appendChild(createTextElement('time', originalTask.time));
@@ -203,7 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
             taskElement.appendChild(originalButtonContainer);
         });
 
-        // Добавление кнопок в контейнер
+        //добавление кнопок в контейнер
         buttonContainer.appendChild(confirmButton);
         buttonContainer.appendChild(cancelButton);
 
@@ -213,10 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
         taskElement.appendChild(buttonContainer);
     }
 
-    function showColorPicker(categoryElement, taskElement, isEditable) {
-        let isEditing = taskElement.querySelector('input') !== null;
-        if (!isEditing) return;
-
+    function showColorPicker(categoryElement) {
         let colorPicker = document.querySelector('.color-picker');
         if (!colorPicker) {
             colorPicker = document.createElement('div');
@@ -228,8 +250,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 colorElement.classList.add('color');
                 colorElement.classList.add(color);
                 colorElement.addEventListener('click', () => {
-                    categoryElement.className = 'category ' + color;
-                    console.log('Selected color:', color, 'New class name:', categoryElement.className);
+                    const targetCategoryElement = document.querySelector(`.category[data-task-id="${colorPicker.dataset.taskId}"]`);
+                    if (targetCategoryElement) {
+                        targetCategoryElement.className = 'category ' + color;
+                        console.log('Selected color:', color, 'New class name:', targetCategoryElement.className);
+                    } else {
+                        console.error('Target category element not found');
+                    }
                     colorPicker.style.display = 'none';
                 });
                 colorPicker.appendChild(colorElement);
@@ -242,6 +269,9 @@ document.addEventListener('DOMContentLoaded', () => {
         colorPicker.style.top = `${rect.bottom + window.scrollY}px`;
         colorPicker.style.left = `${rect.left + window.scrollX}px`;
         colorPicker.style.display = 'block';
+
+        //сохранение текущего элемента для изменения цвета
+        colorPicker.dataset.taskId = categoryElement.dataset.taskId;
     }
 
     window.addEventListener('click', (event) => {
@@ -251,7 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Вспомогательные функции для создания элементов
+    //вспомогательные функции для создания элементов
     function createCategoryElement(className) {
         const categoryElement = document.createElement('div');
         categoryElement.className = className;
@@ -270,5 +300,9 @@ document.addEventListener('DOMContentLoaded', () => {
         button.textContent = text;
         button.addEventListener('click', onClick);
         return button;
+    }
+
+    function isEditing(taskElement) {
+        return taskElement.querySelector('input') !== null;
     }
 });
