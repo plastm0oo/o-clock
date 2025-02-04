@@ -25,21 +25,36 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }); 
 
+        // Поле времени
         const timeElement = document.createElement('div');
         timeElement.classList.add('time');
-        const timeInput = document.createElement('input');
-        timeInput.setAttribute('type', 'text');
-        timeInput.setAttribute('placeholder', '13:00 - 14:20');
-        timeInput.addEventListener('input', (e) => {
-            e.target.value = e.target.value.replace(/[^0-9: -]/g, '');
-        });
-        timeElement.appendChild(timeInput);
+        
+        const startTimeHour = createTimeInput('12', 23);
+        const startTimeMinute = createTimeInput('00', 59);
+        const endTimeHour = createTimeInput('13', 23);
+        const endTimeMinute = createTimeInput('30', 59);
 
-        const descriptionElement = document.createElement('div');
-        descriptionElement.classList.add('description');
         const descriptionInput = document.createElement('input');
         descriptionInput.setAttribute('type', 'text');
         descriptionInput.setAttribute('placeholder', 'Описание задачи');
+
+        //автоматический переход на другое окно
+        startTimeHour.addEventListener('input', () => autoMove(startTimeHour, startTimeMinute));
+        startTimeMinute.addEventListener('input', () => autoMove(startTimeMinute, endTimeHour));
+        endTimeHour.addEventListener('input', () => autoMove(endTimeHour, endTimeMinute));
+        endTimeMinute.addEventListener('input', () => autoMove(endTimeMinute, descriptionInput));
+
+        
+        timeElement.appendChild(startTimeHour);
+        timeElement.appendChild(createSeparator(':', 'colon'));
+        timeElement.appendChild(startTimeMinute);
+        timeElement.appendChild(createSeparator(' - ', 'dash'));
+        timeElement.appendChild(endTimeHour);
+        timeElement.appendChild(createSeparator(':', 'colon'));
+        timeElement.appendChild(endTimeMinute);
+
+        const descriptionElement = document.createElement('div');
+        descriptionElement.classList.add('description');
         descriptionElement.appendChild(descriptionInput);
 
         //создание контейнера для кнопок
@@ -54,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
         confirmButton.classList.add('accept');
         confirmButton.addEventListener('click', () => {
-            saveTask(categoryElement, timeInput.value, descriptionInput.value, taskElement);
+            saveTask(categoryElement, startTimeHour.value, startTimeMinute.value, endTimeHour.value, endTimeMinute.value, descriptionInput.value, taskElement);
         });
 
         const cancelButton = document.createElement('button');
@@ -82,15 +97,50 @@ document.addEventListener('DOMContentLoaded', () => {
         tasksContainer.appendChild(taskElement);
     }
 
-    function saveTask(categoryElement, time, description, taskElement) {
-        if (!time || !description) {
-            alert('Пожалуйста, заполните все поля!');
+    function createTimeInput(placeholder, max) {
+        const input = document.createElement('input');
+        input.setAttribute('type', 'text');
+        input.setAttribute('placeholder', placeholder);
+        input.maxLength = 2;
+        input.addEventListener('input', () => {
+            input.value = input.value.replace(/[^\d]/g, ''); //разрешены только цифры
+            if (parseInt(input.value) > max) input.value = max.toString().padStart(2, '0');
+        });
+        return input;
+    }
+
+    function autoMove(input, nextInput) {
+        if (input.value.length === 2) {
+            nextInput.focus();
+        }
+    }
+
+    function createSeparator(text, className) {
+        const separator = document.createElement('span');
+        separator.textContent = text;
+        separator.classList.add(className);
+        return separator;
+    }
+
+    function formatTime(hour, minute) {
+        return `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
+    }
+
+    function saveTask(categoryElement, startHour, startMinute, endHour, endMinute, description, taskElement) {
+        if (!startHour || !startMinute || !description) {
+            alert('Пожалуйста, укажите время и опишите задачу');
             return;
         }
 
+        //форматирование времени для внутреннего использования и отображения
+        const formattedStartTime = formatTime(startHour, startMinute);
+        const formattedEndTime = endHour && endMinute ? formatTime(endHour, endMinute) : '';
+        const displayStartTime = `${parseInt(startHour)}:${startMinute}`;
+        const displayEndTime = endHour && endMinute ? `${parseInt(endHour)}:${endMinute}` : '';
+
         const timeElement = document.createElement('div');
         timeElement.classList.add('time');
-        timeElement.textContent = time;
+        timeElement.textContent = formattedEndTime ? `${displayStartTime} - ${displayEndTime}` : displayStartTime;
 
         const descriptionElement = document.createElement('div');
         descriptionElement.classList.add('description');
@@ -110,10 +160,11 @@ document.addEventListener('DOMContentLoaded', () => {
         editButton.addEventListener('click', () => {
             const originalTask = {
                 category: categoryElement.className,
-                time: time,
+                startTime: formattedStartTime,
+                endTime: formattedEndTime,
                 description: description
             };
-            editTask(taskElement, categoryElement, time, description, originalTask);
+            editTask(taskElement, categoryElement, startHour, startMinute, endHour, endMinute, description, originalTask);
         });
 
         const deleteButton = document.createElement('button');
@@ -136,9 +187,12 @@ document.addEventListener('DOMContentLoaded', () => {
         taskElement.appendChild(timeElement);
         taskElement.appendChild(descriptionElement);
         taskElement.appendChild(buttonContainer);
+        
+        //сортировка задач по времени
+        sortTasks();
     }
 
-    function editTask(taskElement, categoryElement, time, description, originalTask) {
+    function editTask(taskElement, categoryElement, startHour, startMinute, endHour, endMinute, description, originalTask) {
         taskElement.innerHTML = '';
         
         const categoryContainer = document.createElement('div');
@@ -153,19 +207,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const timeElement = document.createElement('div');
         timeElement.classList.add('time');
-        const timeInput = document.createElement('input');
-        timeInput.setAttribute('type', 'text');
-        timeInput.setAttribute('value', time);
-        timeInput.addEventListener('input', (e) => {
-            e.target.value = e.target.value.replace(/[^0-9: -]/g, '');
-        });
-        timeElement.appendChild(timeInput);
+        
+        const startTimeHour = createTimeInput('12', 23);
+        startTimeHour.value = startHour;
+        const startTimeMinute = createTimeInput('00', 59);
+        startTimeMinute.value = startMinute;
+        const endTimeHour = createTimeInput('13', 23);
+        endTimeHour.value = endHour;
+        const endTimeMinute = createTimeInput('30', 59);
+        endTimeMinute.value = endMinute;
 
-        const descriptionElement = document.createElement('div');
-        descriptionElement.classList.add('description');
         const descriptionInput = document.createElement('input');
         descriptionInput.setAttribute('type', 'text');
         descriptionInput.setAttribute('value', description);
+        descriptionInput.setAttribute('placeholder', 'Описание задачи');
+
+        //автоматический переход на другое окно
+        startTimeHour.addEventListener('input', () => autoMove(startTimeHour, startTimeMinute));
+        startTimeMinute.addEventListener('input', () => autoMove(startTimeMinute, endTimeHour));
+        endTimeHour.addEventListener('input', () => autoMove(endTimeHour, endTimeMinute));
+        endTimeMinute.addEventListener('input', () => autoMove(endTimeMinute, descriptionInput));
+        
+        timeElement.appendChild(startTimeHour);
+        timeElement.appendChild(createSeparator(':', 'colon'));
+        timeElement.appendChild(startTimeMinute);
+        timeElement.appendChild(createSeparator(' - ', 'dash'));
+        timeElement.appendChild(endTimeHour);
+        timeElement.appendChild(createSeparator(':', 'colon'));
+        timeElement.appendChild(endTimeMinute);
+
+        const descriptionElement = document.createElement('div');
+        descriptionElement.classList.add('description');
         descriptionElement.appendChild(descriptionInput);
 
         //создание контейнера для кнопок
@@ -174,19 +246,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const confirmButton = document.createElement('button');
         confirmButton.innerHTML = `
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="10" fill="none">
-                <path stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 5 3 4 7-8"/>
+            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="14" fill="none">
+                <path stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="m2.111 7.317 3.943 4.929 9.2-9.857"/>
             </svg>
         `;
         confirmButton.classList.add('accept');
         confirmButton.addEventListener('click', () => {
-            saveTask(categoryContainer, timeInput.value, descriptionInput.value, taskElement);
+            saveTask(categoryContainer, startTimeHour.value, startTimeMinute.value, endTimeHour.value, endTimeMinute.value, descriptionInput.value, taskElement);
         });
 
         const cancelButton = document.createElement('button');
         cancelButton.innerHTML = `
-            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="14" fill="none">
-                <path stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="m2.111 7.317 3.943 4.929 9.2-9.857"/>
+            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="none">
+                <path stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="m2 15 6.5-6.5M15 2 8.5 8.5m0 0L15 15M8.5 8.5 2 2"/>
             </svg>
         `;
         cancelButton.classList.add('cancel');
@@ -194,7 +266,7 @@ document.addEventListener('DOMContentLoaded', () => {
             //возвращение задачи в изначальное состояние
             taskElement.innerHTML = '';
             taskElement.appendChild(createCategoryElement(originalTask.category));
-            taskElement.appendChild(createTextElement('time', originalTask.time));
+            taskElement.appendChild(createTextElement('time', originalTask.startTime + (originalTask.endTime ? ` - ${originalTask.endTime}` : '')));
             taskElement.appendChild(createTextElement('description', originalTask.description));
 
             const originalButtonContainer = document.createElement('div');
@@ -208,7 +280,7 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             editButton.classList.add('edit');
             editButton.addEventListener('click', () => {
-                editTask(taskElement, taskElement.querySelector('.category'), originalTask.time, originalTask.description, originalTask);
+                editTask(taskElement, taskElement.querySelector('.category'), originalTask.startTime.split(':')[0], originalTask.startTime.split(':')[1], originalTask.endTime.split(':')[0], originalTask.endTime.split(':')[1], originalTask.description, originalTask);
             });
 
             const deleteButton = document.createElement('button');
@@ -304,5 +376,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function isEditing(taskElement) {
         return taskElement.querySelector('input') !== null;
+    }
+
+    function sortTasks() {
+        const tasks = Array.from(tasksContainer.children);
+        tasks.sort((a, b) => {
+            const timeA = a.querySelector('.time').textContent.split(' ')[0];
+            const timeB = b.querySelector('.time').textContent.split(' ')[0];
+            return timeA.localeCompare(timeB, undefined, { numeric: true, sensitivity: 'base' });
+        });
+        tasks.forEach(task => tasksContainer.appendChild(task));
     }
 });
