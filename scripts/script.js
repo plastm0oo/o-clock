@@ -12,8 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
         //создание элемента строки задачи
         const taskElement = document.createElement('div');
         taskElement.classList.add('task');
-        taskElement.dataset.taskId = `task-${taskIdCounter}`; //уникальный идентификатор для задачи
-        taskIdCounter++;
+        taskElement.dataset.taskId = `task-${taskIdCounter++}`; //уникальный идентификатор для задачи
 
         const categoryElement = document.createElement('div');
         categoryElement.classList.add('category');
@@ -25,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }); 
 
-        // Поле времени
+        //поле времени
         const timeElement = document.createElement('div');
         timeElement.classList.add('time');
         
@@ -72,6 +71,14 @@ document.addEventListener('DOMContentLoaded', () => {
             saveTask(categoryElement, startTimeHour.value, startTimeMinute.value, endTimeHour.value, endTimeMinute.value, descriptionInput.value, taskElement);
         });
 
+        // Функция для обработки нажатия Enter
+        const handleEnterKeyPress = (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                confirmButton.click();
+            }
+        };
+
         const cancelButton = document.createElement('button');
         cancelButton.innerHTML = `
             <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="none">
@@ -82,6 +89,13 @@ document.addEventListener('DOMContentLoaded', () => {
         cancelButton.addEventListener('click', () => {
             tasksContainer.removeChild(taskElement);
         });
+
+        // Добавляем обработчик нажатия клавиши Enter для всех полей ввода
+        startTimeHour.addEventListener('keypress', handleEnterKeyPress);
+        startTimeMinute.addEventListener('keypress', handleEnterKeyPress);
+        endTimeHour.addEventListener('keypress', handleEnterKeyPress);
+        endTimeMinute.addEventListener('keypress', handleEnterKeyPress);
+        descriptionInput.addEventListener('keypress', handleEnterKeyPress);
 
         //добавление кнопок в контейнер
         buttonContainer.appendChild(confirmButton);
@@ -124,6 +138,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function formatTime(hour, minute) {
         return `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
+    }
+
+    function autoResize(event) {
+        const input = event.target;
+        input.style.height = 'auto';
+        input.style.height = (input.scrollHeight) + 'px';
     }
 
     function saveTask(categoryElement, startHour, startMinute, endHour, endMinute, description, taskElement) {
@@ -255,6 +275,14 @@ document.addEventListener('DOMContentLoaded', () => {
             saveTask(categoryContainer, startTimeHour.value, startTimeMinute.value, endTimeHour.value, endTimeMinute.value, descriptionInput.value, taskElement);
         });
 
+        // Функция для обработки нажатия Enter
+        const handleEnterKeyPress = (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                confirmButton.click();
+            }
+        };
+
         const cancelButton = document.createElement('button');
         cancelButton.innerHTML = `
             <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="none">
@@ -300,6 +328,13 @@ document.addEventListener('DOMContentLoaded', () => {
             taskElement.appendChild(originalButtonContainer);
         });
 
+        // Добавляем обработчик нажатия клавиши Enter для всех полей ввода
+        startTimeHour.addEventListener('keypress', handleEnterKeyPress);
+        startTimeMinute.addEventListener('keypress', handleEnterKeyPress);
+        endTimeHour.addEventListener('keypress', handleEnterKeyPress);
+        endTimeMinute.addEventListener('keypress', handleEnterKeyPress);
+        descriptionInput.addEventListener('keypress', handleEnterKeyPress);
+
         //добавление кнопок в контейнер
         buttonContainer.appendChild(confirmButton);
         buttonContainer.appendChild(cancelButton);
@@ -319,15 +354,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const colors = ['red', 'orange', 'yellow', 'green', 'blue', 'indigo', 'gray'];
             colors.forEach(color => {
                 const colorElement = document.createElement('div');
-                colorElement.classList.add('color');
-                colorElement.classList.add(color);
+                colorElement.classList.add('color', color);
                 colorElement.addEventListener('click', () => {
                     const targetCategoryElement = document.querySelector(`.category[data-task-id="${colorPicker.dataset.taskId}"]`);
                     if (targetCategoryElement) {
                         targetCategoryElement.className = 'category ' + color;
-                        console.log('Selected color:', color, 'New class name:', targetCategoryElement.className);
-                    } else {
-                        console.error('Target category element not found');
                     }
                     colorPicker.style.display = 'none';
                 });
@@ -365,13 +396,6 @@ document.addEventListener('DOMContentLoaded', () => {
         textElement.classList.add(className);
         textElement.textContent = text;
         return textElement;
-    }
-
-    function createButton(text, onClick) {
-        const button = document.createElement('button');
-        button.textContent = text;
-        button.addEventListener('click', onClick);
-        return button;
     }
 
     function isEditing(taskElement) {
