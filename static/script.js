@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const apiBaseUrl = 'http://127.0.0.1:8000/api/tasks/';
     const addTaskButton = document.getElementById('add-task');
     const tasksContainer = document.getElementById('tasks');
     const prevDayButton = document.getElementById('prev-day');
@@ -7,8 +8,35 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentWeekdayElement = document.getElementById('current-weekday');
     const currentYearElement = document.getElementById('current-year');
 
-    let taskIdCounter = 0; //счетчик для уникальных идентификаторов задач
-    let currentDate = new Date(); // Текущая дата
+    let taskIdCounter = 0;
+    let currentDate = new Date().toISOString().split('T')[0];
+
+    if (!(currentDate instanceof Date)) {
+        console.warn("Инициализация currentDate: восстанавливаю значение...");
+        currentDate = new Date();
+    }
+    console.log("Изначальное значение currentDate:", currentDate);
+
+    async function loadTasksForDate(date) {
+        const formattedDate = date.toISOString().split('T')[0];
+        try {
+            const response = await fetch(`${apiBaseUrl}?date=${formattedDate}`);
+            if (!response.ok) {
+                throw new Error(`Ошибка загрузки задач: ${response.statusText}`);
+            }
+            const tasks = await response.json();
+            tasksContainer.innerHTML = ''; // Очистка контейнера задач
+            tasks.forEach(task => {
+                const existingTask = tasksContainer.querySelector(`[data-task-id="task-${task.id}"]`);
+                if (!existingTask) {
+                    addTaskToDOM(task); // Добавляем задачу в DOM
+                }
+            });
+            sortTasks();
+        } catch (error) {
+            console.error('Ошибка при загрузке задач:', error);
+        }
+    }
 
     // Функция для форматирования даты
     function formatDate(date) {
@@ -28,48 +56,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Обновление отображаемой даты
     function updateDateDisplay() {
+        if (!(currentDate instanceof Date)) {
+            console.error("Ошибка: currentDate не является объектом Date!");
+            return;
+        }
         currentDateElement.textContent = formatDate(currentDate);
         currentWeekdayElement.textContent = formatWeekday(currentDate);
         currentYearElement.textContent = formatYear(currentDate);
         loadTasksForDate(currentDate);
     }
 
-    // Загрузка задач для указанной даты
-    function loadTasksForDate(date) {
-        const formattedDate = date.toISOString().split('T')[0];
-        console.log(`Fetching tasks for date: ${formattedDate}`);
-        fetch(`/tasks/?date=${formattedDate}`)
-            .then(response => {
-                if (!response.ok) {
-                    console.error(`Network response was not ok: ${response.statusText}`);
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(tasks => {
-                console.log(`Tasks loaded: `, tasks);
-                tasksContainer.innerHTML = '';
-                tasks.forEach(task => {
-                    addTaskToDOM(task);
-                });
-            })
-            .catch(error => console.error('Error loading tasks:', error));
-    }
-
     // Добавление задачи в DOM
     function addTaskToDOM(task) {
+        if (!task.id || task.id === 0) {
+            console.error('Invalid task ID, cannot add to DOM:', task.id);
+            return; // Не добавляем задачу с некорректным ID
+        }
+    
+        const existingTask = tasksContainer.querySelector(`[data-task-id="task-${task.id}"]`);
+        if (existingTask) {
+            console.warn(`Task with ID ${task.id} already exists in DOM, skipping addition.`);
+            return; // Пропускаем задачу, если она уже существует
+        }
+
         const taskElement = document.createElement('div');
         taskElement.classList.add('task');
-        taskElement.dataset.taskId = `task-${task.id}`;
+        taskElement.setAttribute('data-task-id', `task-${task.id}`);
 
         const categoryElement = document.createElement('div');
         categoryElement.classList.add('category');
-        categoryElement.classList.add(task.category);
+        const categoryClasses = task.category.split(' ');
+        categoryClasses.forEach(className => categoryElement.classList.add(className));
         categoryElement.dataset.taskId = taskElement.dataset.taskId;
 
         const timeElement = document.createElement('div');
         timeElement.classList.add('time');
-        timeElement.textContent = `${task.start_time} - ${task.end_time}`;
+        const formattedTime = `${task.start_time.slice(0, 5)} - ${task.end_time.slice(0, 5)}`;
+        timeElement.textContent = formattedTime;
 
         const descriptionElement = document.createElement('div');
         descriptionElement.classList.add('description');
@@ -80,24 +103,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const editButton = document.createElement('button');
         editButton.innerHTML = `
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M3 17.25V21H6.75L17.81 9.94L14.06 6.19L3 17.25ZM20.71 7.04C21.1 6.65 21.1 6.02 20.71 5.63L18.37 3.29C17.98 2.9 17.35 2.9 16.96 3.29L15.13 5.12L18.88 8.87L20.71 7.04Z" fill="currentColor"/>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" fill="none">
+                <path stroke="#666" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12.844 7.14 15 4.422l-3.75-3L9 4.005m3.844 3.134L6 14.75l-4.5 1.5.75-4.5L9 4.005m3.844 3.134L9 4.005"/>
             </svg>
         `;
         editButton.addEventListener('click', () => {
             const originalTask = {
+                id: task.id,
                 category: task.category,
                 startTime: task.start_time,
                 endTime: task.end_time,
-                description: task.description
+                description: task.description,
+                date: task.date
             };
-            editTask(taskElement, categoryElement, task.start_time, task.end_time, task.description, originalTask);
+            editTask(
+                taskElement,
+                categoryElement,
+                task.start_time.split(':')[0],
+                task.start_time.split(':')[1],
+                task.end_time.split(':')[0],
+                task.end_time.split(':')[1],
+                task.description,
+                originalTask
+            );
         });
 
         const deleteButton = document.createElement('button');
         deleteButton.innerHTML = `
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M16 9V19H8V9H16ZM18.5 4H15.5L14.79 3.29C14.62 3.11 14.39 3 14.14 3H9.86C9.61 3 9.38 3.11 9.21 3.29L8.5 4H5.5V6H18.5V4ZM6 6V19C6 20.1 6.9 21 8 21H16C17.1 21 18 20.1 18 19V6H6Z" fill="currentColor"/>
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="17" fill="none">
+                <path stroke="#666" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5.5 2.364h-4L2.833 16h9.334L13.5 2.364h-4m-4 0c.443-1.018.853-1.357 2-1.364 1.29.043 1.603.462 2 1.364m-4 0h4M4.167 5.5l.666 7.773m6-7.773-.666 7.773M7.5 5.5v7.773"/>
+            </svg>
             `;
         deleteButton.addEventListener('click', () => {
             deleteTask(task.id);
@@ -116,13 +151,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Переход на следующий день
     nextDayButton.addEventListener('click', () => {
-        currentDate.setDate(currentDate.getDate() + 1);
+        if (!(currentDate instanceof Date)) {
+            console.warn("currentDate был перезаписан, восстанавливаю значение...");
+            currentDate = new Date(); // Восстанавливаем значение
+        }
+    
+        if (currentDate instanceof Date) {
+            currentDate.setDate(currentDate.getDate() + 1);
+        } else {
+            console.error("currentDate не является объектом Date!");
+        }
         updateDateDisplay();
     });
 
     // Переход на предыдущий день
     prevDayButton.addEventListener('click', () => {
-        currentDate.setDate(currentDate.getDate() - 1);
+        if (!(currentDate instanceof Date)) {
+            console.warn("currentDate был перезаписан, восстанавливаю значение...");
+            currentDate = new Date(); // Восстанавливаем значение
+        }
+    
+        if (currentDate instanceof Date) {
+            currentDate.setDate(currentDate.getDate() - 1);
+        } else {
+            console.error("currentDate не является объектом Date!");
+        }
         updateDateDisplay();
     });
 
@@ -190,7 +243,15 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
         confirmButton.classList.add('accept');
         confirmButton.addEventListener('click', () => {
-            saveTask(categoryElement, startTimeHour.value, startTimeMinute.value, endTimeHour.value, endTimeMinute.value, descriptionInput.value, taskElement);
+            saveTask(
+                categoryElement,
+                startTimeHour.value,
+                startTimeMinute.value,
+                endTimeHour.value,
+                endTimeMinute.value,
+                descriptionInput.value,
+                taskElement
+            );
         }); 
 
         // Функция для обработки нажатия Enter
@@ -262,13 +323,12 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
     }
 
-    function saveTask(categoryElement, startHour, startMinute, endHour, endMinute, description, taskElement) {
+    function saveTask(categoryElement, startHour, startMinute, endHour, endMinute, description, taskElement, taskId = null) {
         if (!startHour || !startMinute || !description) {
             alert('Пожалуйста, укажите время и опишите задачу');
             return;
         }
 
-        //форматирование времени для внутреннего использования и отображения
         const formattedStartTime = formatTime(startHour, startMinute);
         const formattedEndTime = endHour && endMinute ? formatTime(endHour, endMinute) : '';
         const displayStartTime = `${parseInt(startHour)}:${startMinute}`;
@@ -282,7 +342,6 @@ document.addEventListener('DOMContentLoaded', () => {
         descriptionElement.classList.add('description');
         descriptionElement.textContent = description;
 
-        //создание контейнера для кнопок
         const buttonContainer = document.createElement('div');
         buttonContainer.classList.add('button-container');
 
@@ -295,12 +354,22 @@ document.addEventListener('DOMContentLoaded', () => {
         editButton.classList.add('edit');
         editButton.addEventListener('click', () => {
             const originalTask = {
+                id: taskId,
                 category: categoryElement.className,
                 startTime: formattedStartTime,
                 endTime: formattedEndTime,
                 description: description
             };
-            editTask(taskElement, categoryElement, startHour, startMinute, endHour, endMinute, description, originalTask);
+            editTask(
+                taskElement,
+                categoryElement,
+                startHour,
+                startMinute,
+                endHour,
+                endMinute,
+                description,
+                originalTask
+            );
         });
 
         const deleteButton = document.createElement('button');
@@ -314,7 +383,6 @@ document.addEventListener('DOMContentLoaded', () => {
             tasksContainer.removeChild(taskElement);
         });
 
-        //добавление кнопок в контейнер
         buttonContainer.appendChild(editButton);
         buttonContainer.appendChild(deleteButton);
 
@@ -324,38 +392,37 @@ document.addEventListener('DOMContentLoaded', () => {
         taskElement.appendChild(descriptionElement);
         taskElement.appendChild(buttonContainer);
         
-        //сохранение задачи на сервере
         const task = {
             category: categoryElement.className,
-            start_time: formattedStartTime,
-            end_time: formattedEndTime,
+            start_time: formatTime(startHour, startMinute),
+            end_time: endHour && endMinute ? formatTime(endHour, endMinute) : '',
             description: description,
             date: currentDate.toISOString().split('T')[0]
         };
-
-        fetch('/tasks/', {
-            method: 'POST',
+        console.log('Task being created:', task);
+        //если есть taskId, выполняем PUT-запрос (редактирование)
+        const url = taskId ? `${apiBaseUrl}${taskId}/` : apiBaseUrl;
+        const method = taskId ? 'PUT' : 'POST';
+        fetch(url, {
+            method: method,
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(task)
         })
-        .then(response => {
-            if (!response.ok) {
-                console.error(`Network response was not ok: ${response.statusText}`);
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(savedTask => {
-            console.log(`Task saved: `, savedTask);
-            addTaskToDOM(savedTask);
-            tasksContainer.removeChild(taskElement);
-        })
-        .catch(error => console.error('Error saving task:', error));
-
-        //сортировка задач по времени
-        sortTasks();
+            .then(response => {
+                if (!response.ok) {
+                    console.error(`Network response was not ok: ${response.statusText}`);
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(savedTask => {
+                taskElement.remove();
+                addTaskToDOM(savedTask);
+                sortTasks();
+            })
+            .catch(error => console.error('Error saving task:', error));
     }
 
     function editTask(taskElement, categoryElement, startHour, startMinute, endHour, endMinute, description, originalTask) {
@@ -417,12 +484,17 @@ document.addEventListener('DOMContentLoaded', () => {
             </svg>
         `;
         confirmButton.classList.add('accept');
-        /*
         confirmButton.addEventListener('click', () => {
-            saveTask(categoryContainer, startTimeHour.value, startTimeMinute.value, endTimeHour.value, endTimeMinute.value, descriptionInput.value, taskElement);
-        });*/
-        confirmButton.addEventListener('click', () => {
-            saveTask(categoryContainer, startTimeHour.value, startTimeMinute.value, endTimeHour.value, endTimeMinute.value, descriptionInput.value, taskElement);
+            saveTask(
+                categoryContainer,
+                startTimeHour.value,
+                startTimeMinute.value,
+                endTimeHour.value,
+                endTimeMinute.value,
+                descriptionInput.value,
+                taskElement,
+                originalTask.id
+            );
             const task = {
                 category: categoryContainer.className.split(' ')[1],
                 start_time: `${startTimeHour.value.padStart(2, '0')}:${startTimeMinute.value.padStart(2, '0')}`,
@@ -430,21 +502,40 @@ document.addEventListener('DOMContentLoaded', () => {
                 description: descriptionInput.value,
                 date: originalTask.date
             };
-            fetch(`/tasks/${originalTask.id}/`, {
+            console.log(`Task ID: ${originalTask.id}`);
+            fetch(`api/tasks/${originalTask.id}/`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(task)
             })
-            .then(response => response.json())
-            .then(updatedTask => {
-                addTaskToDOM(updatedTask);
-                tasksContainer.removeChild(taskElement);
-            });
+                .then(response => {
+                    if (!response.ok) {
+                        console.error(`Network response was not ok: ${response.statusText}`);
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                /*
+                .then(updatedTask => {
+                    console.log('Attempting to remove taskElement:', taskElement);
+                    if (tasksContainer.contains(taskElement)) {
+                        tasksContainer.removeChild(taskElement);
+                    } else {
+                        console.warn('taskElement is not a child of tasksContainer');
+                    }
+                    addTaskToDOM(updatedTask);
+                    sortTasks();
+                }) */
+                .then(savedTask => {
+                    console.log(`Adding task to DOM: ${savedTask.id}`);
+                    addTaskToDOM(savedTask);
+                    sortTasks();
+                })
+                .catch(error => console.error('Error saving task:', error));
         });
 
-        // Функция для обработки нажатия Enter
         const handleEnterKeyPress = (event) => {
             if (event.key === 'Enter') {
                 event.preventDefault();
@@ -477,7 +568,20 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             editButton.classList.add('edit');
             editButton.addEventListener('click', () => {
-                editTask(taskElement, taskElement.querySelector('.category'), originalTask.startTime.split(':')[0], originalTask.startTime.split(':')[1], originalTask.endTime.split(':')[0], originalTask.endTime.split(':')[1], originalTask.description, originalTask);
+                if (!originalTask.id) {
+                    console.error('Task ID is null or undefined, cannot edit task.');
+                    return; // Прекращаем выполнение, если ID задачи некорректен
+                }
+                editTask(
+                    taskElement,
+                    taskElement.querySelector('.category'),
+                    originalTask.startTime.split(':')[0],
+                    originalTask.startTime.split(':')[1],
+                    originalTask.endTime.split(':')[0],
+                    originalTask.endTime.split(':')[1],
+                    originalTask.description,
+                    originalTask
+                );
             });
 
             const deleteButton = document.createElement('button');
@@ -574,19 +678,24 @@ document.addEventListener('DOMContentLoaded', () => {
     function sortTasks() {
         const tasksArray = Array.from(tasksContainer.getElementsByClassName('task'));
         tasksArray.sort((a, b) => {
-            const timeA = a.querySelector('.time').textContent.split(' ')[0];
-            const timeB = b.querySelector('.time').textContent.split(' ')[0];
+            const timeAElement = a.querySelector('.time');
+            const timeBElement = b.querySelector('.time');
+            const timeA = timeAElement ? timeAElement.textContent.split(' ')[0] : '';
+            const timeB = timeBElement ? timeBElement.textContent.split(' ')[0] : '';
             return timeA.localeCompare(timeB, undefined, { numeric: true, sensitivity: 'base' });
         });
         tasksArray.forEach(task => tasksContainer.appendChild(task));
     }
 
     function deleteTask(taskId) {
-        fetch(`/tasks/${taskId}/`, {
+        fetch(`/api/tasks/${taskId}/`, { // Убедитесь, что URL совпадает с маршрутом на сервере
             method: 'DELETE'
-        }).then(() => {
-            loadTasksForDate(currentDate);
-        });
+        }).then(response => {
+            if (!response.ok) {
+                throw new Error('Ошибка удаления задачи');
+            }
+            loadTasksForDate(currentDate); // Обновляем список задач после удаления
+        }).catch(error => console.error('Ошибка удаления задачи:', error));
     }
 
     updateDateDisplay();

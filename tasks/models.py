@@ -2,7 +2,7 @@ from django.db import models
 
 # Create your models here.
 class Task(models.Model):
-    category = models.CharField(max_length=20)
+    category = models.CharField()
     description = models.TextField()
     start_time = models.TimeField()
     end_time = models.TimeField()
