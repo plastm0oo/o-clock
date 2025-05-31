@@ -25,11 +25,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(`Ошибка загрузки задач: ${response.statusText}`);
             }
             const tasks = await response.json();
-            tasksContainer.innerHTML = ''; // Очистка контейнера задач
+            tasksContainer.innerHTML = '';
             tasks.forEach(task => {
                 const existingTask = tasksContainer.querySelector(`[data-task-id="task-${task.id}"]`);
                 if (!existingTask) {
-                    addTaskToDOM(task); // Добавляем задачу в DOM
+                    addTaskToDOM(task);
                 }
             });
             sortTasks();
@@ -38,7 +38,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Функция для форматирования даты
     function formatDate(date) {
         const options = { month: 'long', day: 'numeric' };
         return date.toLocaleDateString('ru-RU', options);
@@ -54,7 +53,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return date.toLocaleDateString('ru-RU', options);
     }
 
-    // Обновление отображаемой даты
     function updateDateDisplay() {
         if (!(currentDate instanceof Date)) {
             console.error("Ошибка: currentDate не является объектом Date!");
@@ -66,17 +64,16 @@ document.addEventListener('DOMContentLoaded', () => {
         loadTasksForDate(currentDate);
     }
 
-    // Добавление задачи в DOM
     function addTaskToDOM(task) {
         if (!task.id || task.id === 0) {
             console.error('Invalid task ID, cannot add to DOM:', task.id);
-            return; // Не добавляем задачу с некорректным ID
+            return;
         }
     
         const existingTask = tasksContainer.querySelector(`[data-task-id="task-${task.id}"]`);
         if (existingTask) {
             console.warn(`Task with ID ${task.id} already exists in DOM, skipping addition.`);
-            return; // Пропускаем задачу, если она уже существует
+            return;
         }
 
         const taskElement = document.createElement('div');
@@ -111,8 +108,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const originalTask = {
                 id: task.id,
                 category: task.category,
-                startTime: task.start_time,
-                endTime: task.end_time,
+                startTime: task.start_time.slice(0, 5),
+                endTime: task.end_time.slice(0, 5),
                 description: task.description,
                 date: task.date
             };
@@ -149,11 +146,10 @@ document.addEventListener('DOMContentLoaded', () => {
         tasksContainer.appendChild(taskElement);
     }
 
-    // Переход на следующий день
     nextDayButton.addEventListener('click', () => {
         if (!(currentDate instanceof Date)) {
             console.warn("currentDate был перезаписан, восстанавливаю значение...");
-            currentDate = new Date(); // Восстанавливаем значение
+            currentDate = new Date();
         }
     
         if (currentDate instanceof Date) {
@@ -164,11 +160,10 @@ document.addEventListener('DOMContentLoaded', () => {
         updateDateDisplay();
     });
 
-    // Переход на предыдущий день
     prevDayButton.addEventListener('click', () => {
         if (!(currentDate instanceof Date)) {
             console.warn("currentDate был перезаписан, восстанавливаю значение...");
-            currentDate = new Date(); // Восстанавливаем значение
+            currentDate = new Date();
         }
     
         if (currentDate instanceof Date) {
@@ -179,28 +174,25 @@ document.addEventListener('DOMContentLoaded', () => {
         updateDateDisplay();
     });
 
-    //открытие новой строки задачи
     addTaskButton.addEventListener('click', () => {
         addNewTask();
     });
 
     function addNewTask() {
-        //создание элемента строки задачи
         const taskElement = document.createElement('div');
         taskElement.classList.add('task');
-        taskElement.dataset.taskId = `task-${taskIdCounter++}`; //уникальный идентификатор для задачи
+        taskElement.dataset.taskId = `task-${taskIdCounter++}`;
 
         const categoryElement = document.createElement('div');
         categoryElement.classList.add('category');
         categoryElement.classList.add('gray');
-        categoryElement.dataset.taskId = taskElement.dataset.taskId; //привязка к задаче
+        categoryElement.dataset.taskId = taskElement.dataset.taskId;
         categoryElement.addEventListener('click', (event) => {
             if (isEditing(taskElement)) {
                 showColorPicker(event.currentTarget);
             }
         });
 
-        //поле времени
         const timeElement = document.createElement('div');
         timeElement.classList.add('time');
         
@@ -213,7 +205,6 @@ document.addEventListener('DOMContentLoaded', () => {
         descriptionInput.setAttribute('type', 'text');
         descriptionInput.setAttribute('placeholder', 'Описание задачи');
 
-        //автоматический переход на другое окно
         startTimeHour.addEventListener('input', () => autoMove(startTimeHour, startTimeMinute));
         startTimeMinute.addEventListener('input', () => autoMove(startTimeMinute, endTimeHour));
         endTimeHour.addEventListener('input', () => autoMove(endTimeHour, endTimeMinute));
@@ -231,7 +222,6 @@ document.addEventListener('DOMContentLoaded', () => {
         descriptionElement.classList.add('description');
         descriptionElement.appendChild(descriptionInput);
 
-        //создание контейнера для кнопок
         const buttonContainer = document.createElement('div');
         buttonContainer.classList.add('button-container');
 
@@ -254,7 +244,6 @@ document.addEventListener('DOMContentLoaded', () => {
             );
         }); 
 
-        // Функция для обработки нажатия Enter
         const handleEnterKeyPress = (event) => {
             if (event.key === 'Enter') {
                 event.preventDefault();
@@ -273,24 +262,20 @@ document.addEventListener('DOMContentLoaded', () => {
             tasksContainer.removeChild(taskElement);
         });
 
-        // Добавляем обработчик нажатия клавиши Enter для всех полей ввода
         startTimeHour.addEventListener('keypress', handleEnterKeyPress);
         startTimeMinute.addEventListener('keypress', handleEnterKeyPress);
         endTimeHour.addEventListener('keypress', handleEnterKeyPress);
         endTimeMinute.addEventListener('keypress', handleEnterKeyPress);
         descriptionInput.addEventListener('keypress', handleEnterKeyPress);
 
-        //добавление кнопок в контейнер
         buttonContainer.appendChild(confirmButton);
         buttonContainer.appendChild(cancelButton);
 
-        //добавление элементов в строку задачи
         taskElement.appendChild(categoryElement);
         taskElement.appendChild(timeElement);
         taskElement.appendChild(descriptionElement);
         taskElement.appendChild(buttonContainer);
 
-        //добавление строки задачи в контейнер задач
         tasksContainer.appendChild(taskElement);
     }
 
@@ -300,7 +285,7 @@ document.addEventListener('DOMContentLoaded', () => {
         input.setAttribute('placeholder', placeholder);
         input.maxLength = 2;
         input.addEventListener('input', () => {
-            input.value = input.value.replace(/[^\d]/g, ''); //разрешены только цифры
+            input.value = input.value.replace(/[^\d]/g, '');
             if (parseInt(input.value) > max) input.value = max.toString().padStart(2, '0');
         });
         return input;
@@ -400,9 +385,10 @@ document.addEventListener('DOMContentLoaded', () => {
             date: currentDate.toISOString().split('T')[0]
         };
         console.log('Task being created:', task);
-        //если есть taskId, выполняем PUT-запрос (редактирование)
+        
         const url = taskId ? `${apiBaseUrl}${taskId}/` : apiBaseUrl;
         const method = taskId ? 'PUT' : 'POST';
+
         fetch(url, {
             method: method,
             headers: {
@@ -431,7 +417,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const categoryContainer = document.createElement('div');
         categoryContainer.classList.add('category');
         categoryContainer.classList.add(categoryElement.classList[1]);
-        categoryContainer.dataset.taskId = taskElement.dataset.taskId; //привязка к задаче
+        categoryContainer.dataset.taskId = taskElement.dataset.taskId;
         categoryContainer.addEventListener('click', (event) => {
             if (isEditing(taskElement)) {
                 showColorPicker(event.currentTarget);
@@ -455,7 +441,6 @@ document.addEventListener('DOMContentLoaded', () => {
         descriptionInput.setAttribute('value', description);
         descriptionInput.setAttribute('placeholder', 'Описание задачи');
 
-        //автоматический переход на другое окно
         startTimeHour.addEventListener('input', () => autoMove(startTimeHour, startTimeMinute));
         startTimeMinute.addEventListener('input', () => autoMove(startTimeMinute, endTimeHour));
         endTimeHour.addEventListener('input', () => autoMove(endTimeHour, endTimeMinute));
@@ -473,7 +458,6 @@ document.addEventListener('DOMContentLoaded', () => {
         descriptionElement.classList.add('description');
         descriptionElement.appendChild(descriptionInput);
 
-        //создание контейнера для кнопок
         const buttonContainer = document.createElement('div');
         buttonContainer.classList.add('button-container');
 
@@ -517,17 +501,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     return response.json();
                 })
-                /*
-                .then(updatedTask => {
-                    console.log('Attempting to remove taskElement:', taskElement);
-                    if (tasksContainer.contains(taskElement)) {
-                        tasksContainer.removeChild(taskElement);
-                    } else {
-                        console.warn('taskElement is not a child of tasksContainer');
-                    }
-                    addTaskToDOM(updatedTask);
-                    sortTasks();
-                }) */
                 .then(savedTask => {
                     console.log(`Adding task to DOM: ${savedTask.id}`);
                     addTaskToDOM(savedTask);
@@ -551,7 +524,6 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
         cancelButton.classList.add('cancel');
         cancelButton.addEventListener('click', () => {
-            //возвращение задачи в изначальное состояние
             taskElement.innerHTML = '';
             taskElement.appendChild(createCategoryElement(originalTask.category));
             taskElement.appendChild(createTextElement('time', originalTask.startTime + (originalTask.endTime ? ` - ${originalTask.endTime}` : '')));
@@ -570,7 +542,7 @@ document.addEventListener('DOMContentLoaded', () => {
             editButton.addEventListener('click', () => {
                 if (!originalTask.id) {
                     console.error('Task ID is null or undefined, cannot edit task.');
-                    return; // Прекращаем выполнение, если ID задачи некорректен
+                    return;
                 }
                 editTask(
                     taskElement,
@@ -601,14 +573,12 @@ document.addEventListener('DOMContentLoaded', () => {
             taskElement.appendChild(originalButtonContainer);
         });
 
-        // Добавляем обработчик нажатия клавиши Enter для всех полей ввода
         startTimeHour.addEventListener('keypress', handleEnterKeyPress);
         startTimeMinute.addEventListener('keypress', handleEnterKeyPress);
         endTimeHour.addEventListener('keypress', handleEnterKeyPress);
         endTimeMinute.addEventListener('keypress', handleEnterKeyPress);
         descriptionInput.addEventListener('keypress', handleEnterKeyPress);
 
-        //добавление кнопок в контейнер
         buttonContainer.appendChild(confirmButton);
         buttonContainer.appendChild(cancelButton);
 
@@ -646,7 +616,6 @@ document.addEventListener('DOMContentLoaded', () => {
         colorPicker.style.left = `${rect.left + window.scrollX}px`;
         colorPicker.style.display = 'block';
 
-        //сохранение текущего элемента для изменения цвета
         colorPicker.dataset.taskId = categoryElement.dataset.taskId;
     }
 
@@ -657,7 +626,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    //вспомогательные функции для создания элементов
     function createCategoryElement(className) {
         const categoryElement = document.createElement('div');
         categoryElement.className = className;
@@ -688,13 +656,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function deleteTask(taskId) {
-        fetch(`/api/tasks/${taskId}/`, { // Убедитесь, что URL совпадает с маршрутом на сервере
+        fetch(`/api/tasks/${taskId}/`, {
             method: 'DELETE'
         }).then(response => {
             if (!response.ok) {
                 throw new Error('Ошибка удаления задачи');
             }
-            loadTasksForDate(currentDate); // Обновляем список задач после удаления
+            loadTasksForDate(currentDate);
         }).catch(error => console.error('Ошибка удаления задачи:', error));
     }
 
