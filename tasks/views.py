@@ -27,7 +27,7 @@ class TaskDetailView(APIView):
             task.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         except Task.DoesNotExist:
-            return Response({'error': 'Task not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Task not found"}, status=status.HTTP_404_NOT_FOUND)
     def put(self, request, pk):
         try:
             task = Task.objects.get(pk=pk)
@@ -38,3 +38,11 @@ class TaskDetailView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Task.DoesNotExist:
             return Response({"error": "Task not found"}, status=status.HTTP_404_NOT_FOUND)
+    def get(self, request, pk):
+        try:
+            task = Task.objects.get(pk=pk)
+        except Task.DoesNotExist:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = TaskSerializer(task)
+        return Response(serializer.data, status=status.HTTP_200_OK)
